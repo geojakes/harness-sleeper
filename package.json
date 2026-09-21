@@ -1,0 +1,45 @@
+{
+  "name": "harness-sleeper",
+  "version": "0.1.0",
+  "description": "Hook into any AI coding harness (Claude Code, Cursor, ...), record generic repo events, and map them to deterministic actions via a sleeper.yaml in each repo.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/geojakes/harness-sleeper.git"
+  },
+  "type": "module",
+  "bin": {
+    "sleeper": "./dist/src/cli.js"
+  },
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "claude-code",
+    "cursor",
+    "hooks",
+    "agent",
+    "harness",
+    "context-injection"
+  ],
+  "dependencies": {
+    "yaml": "^2.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}

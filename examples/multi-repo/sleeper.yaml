@@ -1,0 +1,16 @@
+version: 1
+rules:
+  # The root config applies to every event in the workspace, no matter which
+  # repo (or no repo) the event's path falls under.
+  - name: workspace-wide-log
+    on: [command.run, file.write]
+    once: false
+    actions:
+      - log: "workspace event: {{event}} in {{workspace}}"
+
+  - name: block-force-push
+    on: command.run
+    match:
+      command: "push --force"
+    actions:
+      - block: "force-push is disabled workspace-wide; ask a human"

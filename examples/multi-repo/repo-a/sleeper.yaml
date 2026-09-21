@@ -1,0 +1,22 @@
+version: 1
+rules:
+  # Paths here are relative to this file's directory (examples/multi-repo/repo-a),
+  # not the workspace root. This only fires for reads under repo-a/src/auth/.
+  - name: auth-module-context
+    on: file.read
+    match:
+      path: "src/auth/**"
+    once: path
+    actions:
+      - inject: |
+          {{relpath}} is part of repo-a's auth module. Changes here need a
+          second reviewer; mention that in any summary you give the user.
+
+  - name: check-before-commit
+    on: command.run
+    match:
+      command: "^git commit"
+    actions:
+      - run: "./scripts/check.sh {{relpath}}"
+        inject_output: true
+        timeout: 15

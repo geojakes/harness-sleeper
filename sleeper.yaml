@@ -1,0 +1,25 @@
+version: 1
+rules:
+  # The engine is the trickiest module in this repo (once-tracking, config
+  # discovery order, the pending-injection queue). Point the agent at the
+  # design notes the first time it reads the file, then stay quiet.
+  - name: engine-context
+    on: file.read
+    match:
+      path: "src/engine.ts"
+    once: path
+    actions:
+      - inject: |
+          {{relpath}} implements the rule engine. Two things are easy to get
+          wrong here: `once` tracking is per (config file, rule, path) and is
+          only recorded once a rule actually fires, and a config's rules only
+          apply within its own directory except for the workspace root config,
+          which always applies. See README.md's "how it works" section before
+          changing matching or discovery order.
+
+  # Keep a plain record of every shell command the agent runs in this repo,
+  # for later review with `sleeper events`.
+  - name: log-commands
+    on: command.run
+    actions:
+      - log: "command: {{command}}"

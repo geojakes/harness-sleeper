@@ -1,0 +1,10 @@
+version: 1
+rules:
+  # repo-b never sees repo-a's rules, and repo-a never sees repo-b's: each
+  # child config is scoped to its own directory.
+  - name: warn-on-generated-edits
+    on: file.write
+    match:
+      path: "src/generated/**"
+    actions:
+      - inject: "{{relpath}} is generated. Edit the source template instead and regenerate."
