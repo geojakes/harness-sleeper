@@ -229,9 +229,25 @@ and its rules (name, events, `once`), or the validation error and exits 1.
 
 ## `sleeper events`
 
-Prints session event logs as raw JSONL. With `--session`/`--harness` it
-filters to one session; with neither, it prints every session log under
-the resolved state directory, newest file first.
+Prints session event logs in a human-readable format by default. With
+`--session`/`--harness` it filters to one session; with neither, it prints
+every session log under the resolved state directory, newest file first,
+separated by a blank line. Each file starts with a header derived from its
+name, then one line per record: fixed-width time, event name and tool name
+columns, followed by a detail (a workspace-relative path for file events, a
+truncated one-line command or prompt, or the native hook name where
+relevant). Rule firings and ignored native hooks are called out so they
+stand out from ordinary events:
+
+```
+== claude session s1
+09:14:02  file.read       Read        src/a.ts
+09:14:05  command.run     Bash        npm test
+09:14:05  >> fired  example-rule  [inject]  sleeper.yaml
+```
+
+Pass `--json` to get the previous behaviour back: a `# <filename>` header
+followed by the raw JSONL content of each file, unchanged.
 
 ## Other commands
 

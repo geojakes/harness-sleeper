@@ -16,16 +16,18 @@ import { claudeAdapter } from "./harness/claude.js";
 import { cursorAdapter } from "./harness/cursor.js";
 import { genericAdapter, type GenericRawInput } from "./harness/generic.js";
 import { installClaude, installCursor, uninstallClaude, uninstallCursor } from "./install.js";
+import { formatEventLine, formatLogHeader } from "./format.js";
 
 const USAGE = `sleeper - hook AI coding harnesses into deterministic rules
 
 Usage:
   sleeper init                          Write a starter sleeper.yaml in the current directory
   sleeper check [dir]                   Validate every sleeper.yaml under dir (default: cwd)
-  sleeper events [options]              Print session event logs
+  sleeper events [options]              Print session event logs, human-readable by default
       --session <id>                    Only this session id
       --harness <name>                  Only this harness (claude|cursor|generic)
       --workspace <dir>                 Workspace whose state dir to read (default: cwd)
+      --json                            Print the raw JSONL instead of the formatted view
   sleeper hook claude                   Run the Claude Code hook adapter (reads JSON on stdin)
   sleeper hook cursor                   Run the Cursor hook adapter (reads JSON on stdin)
   sleeper emit <event> [options]        Emit one event from a generic/shell-based harness
@@ -127,7 +129,8 @@ function cmdCheck(args: string[]): void {
 }
 
 function cmdEvents(args: string[]): void {
-  const flags = parseFlags(args);
+  const flags = parseFlags(args, new Set(["json"]));
+  const asJson = flags.get("json") === "true";
   const workspace = path.resolve(flags.get("workspace") ?? process.cwd());
   const stateDir = resolveStateDir(workspace);
   if (!fs.existsSync(stateDir)) {
@@ -157,10 +160,28 @@ function cmdEvents(args: string[]): void {
     return;
   }
 
-  for (const file of files) {
-    console.log(`# ${file.name}`);
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i]!;
     const content = fs.readFileSync(path.join(stateDir, file.name), "utf8");
-    process.stdout.write(content);
+
+    if (asJson) {
+      console.log(`# ${file.name}`);
+      process.stdout.write(content);
+      continue;
+    }
+
+    console.log(formatLogHeader(file.name, workspace));
+    for (const line of content.split("\n")) {
+      if (line.length === 0) continue;
+      let record: unknown;
+      try {
+        record = JSON.parse(line);
+      } catch {
+        record = line;
+      }
+      console.log(formatEventLine(record, workspace));
+    }
+    if (i < files.length - 1) console.log("");
   }
 }
 
